@@ -1,0 +1,15 @@
+{
+  "compact": false,
+  //plugins are small js func used for transformation (ES2015+ syntax into ES5)
+  "plugins": ["@babel/plugin-transform-runtime", "add-module-exports"],
+  //presets are pre-defined set of plugins
+  "presets": [
+    [
+      "@babel/preset-env",
+      {
+        "useBuiltIns": "usage",
+        "corejs": 3
+      }
+    ]
+  ]
+}
