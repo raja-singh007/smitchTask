@@ -24,6 +24,28 @@ export default {
             username: Joi.string().required(),
         },
     },
-    
+    registerDevice:{
+        body:{
+            name: Joi.string().required(),
+            deviceType: Joi.string().required(),
+            currentState: Joi.boolean().required()
+        }
+    },
+    getDeviceDetail: {
+        query: {
+            deviceId: Joi.string().required(),
+        }
+    },
+    deleteDevice: {
+        query: {
+            deviceId: Joi.string().required(),
+        }
+    },
+    shareDevice:{
+        body:{
+            email:Joi.string().email().required(),
+            deviceId : Joi.string().required()
+        }
+    },
 
 }

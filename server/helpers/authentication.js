@@ -6,9 +6,6 @@ const passphrase = 're-dev';
 import config from '../../config/env';
 import AppError from './AppError';
 
-// const publicKey = fs.readFileSync(path.resolve('config/public.pem'), 'utf8');
-// const privateKey = fs.readFileSync(path.resolve('config/private.pem'), 'utf8');
-
 
 export const generateJWT = async (user) => {
   const { _id, fName, lName } = user;
@@ -21,66 +18,22 @@ export const generateJWT = async (user) => {
 };
 
 export const authenticateUser = async (req, res, next) => {
-  passport.authenticate('jwt', config.passportOptions, (error, userDtls, info) => {
-    if (!userDtls && !error && !info) {
-      const error = new AppError('UNAUTHORIZED', 401);
-      return next(error);
-    }
-
-    if (error || info) {
-      return next(error || info);
-    }
-
-    if (userDtls) {
-      req.user = userDtls;
-      return next();
-    }
-  })(req, res, next);
-};
-
-export const encryptString = async (string) => {
-  const buffer = new Buffer.from(string);
-  const encrypted = crypto.publicEncrypt(publicKey, buffer);
-  return encrypted.toString('base64');
-};
-
-export const decryptString = async (encodedString) => {
   try {
-    const buffer = new Buffer.from(encodedString, 'base64');
-    const decrypted = crypto.privateDecrypt(
-      {
-        key: privateKey.toString(),
-        passphrase: passphrase,
-      },
-      buffer
-    );
-    return { success: true, decrypted: decrypted.toString('utf8') };
-  } catch (e) {
-    return { success: false };
+    const user = res.locals.loggedInUser;
+    if (!user) {
+      return res.status(401).json({
+        error: "LOGIN_REQUIRED",
+        message: "You need to be logged in to access this route",
+      });
+    }
+    req.user = user;
+    next();
+  } catch (error) {
+    return res.status(500).json({
+      error: "INTERNAL_SERVER_ERROR",
+      message: error.message,
+    });
   }
 };
 
-// const { writeFileSync } = require('fs');
-// const { generateKeyPairSync } = require('crypto');
-//
-// function generateKeys() {
-//   const { publicKey, privateKey } = generateKeyPairSync('rsa', {
-//     modulusLength: 1024,
-//     namedCurve: 'secp256k1',
-//     publicKeyEncoding: {
-//       type: 'spki',
-//       format: 'pem',
-//     },
-//     privateKeyEncoding: {
-//       type: 'pkcs8',
-//       format: 'pem',
-//       cipher: 'aes-128-cbc',
-//       passphrase: passphrase,
-//     },
-//   });
-//
-//   writeFileSync('private.pem', privateKey);
-//   writeFileSync('public.pem', publicKey);
-// }
-//
-// generateKeys();
+

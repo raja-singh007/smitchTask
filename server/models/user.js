@@ -24,6 +24,7 @@ const userSchema = new Schema({
         },
     },
     password: { type: String, required: true, select: false },
+    devicesId:[{type: mongoose.Schema.Types.ObjectId, ref: 'device'}]
 },
     { timestamps: { createdAt: 'createdOn', updatedAt: 'lastModified' } }
 );

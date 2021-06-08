@@ -12,7 +12,11 @@ const deviceSchema = new Schema({
         required: true
     },
     currentState:{type: Boolean, default: false },
-    userID:{type:mongoose.Schema.Types.ObjectId, ref: 'user'}
+    userID:[{type:mongoose.Schema.Types.ObjectId, ref: 'user'}]
 },
 { timestamps: { createdAt: 'createdOn', updatedAt: 'lastModified' }}
 )
+
+
+
+module.exports= mongoose.model('device',deviceSchema);

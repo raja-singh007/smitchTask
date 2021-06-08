@@ -14,6 +14,6 @@ router.get('/health-check', healthCtrl.checkConnection);
 router.use('/auth', authRoutes);
 
 /* Mounting teacher routes @ /devices */
-// router.use('/devices', devicesRoutes);
+router.use('/devices', devicesRoutes);
 
 export default router;

@@ -47,6 +47,38 @@ app.use(function (req, res, next) {
   next();
 });
 
+app.use(async (req, res, next) => {
+  if (req.headers["x-access-token"]) {
+    try {
+      const accessToken = req.headers["x-access-token"];
+      const {
+        userId,
+        exp
+      } = await jwt.verify(
+        accessToken,
+        process.env.JWT_SECRET
+      );
+
+      if (exp < Date.now().valueOf() / 1000) {
+        return res.status(401).json({
+          error: "TOKEN_EXPIRED",
+          message: "JWT token has expired, please login to obtain a new one",
+          logout: true
+        });
+      }
+      res.locals.loggedInUser = await User.findById(userId);
+    } catch (error) {
+      return res.status(500).json({
+        error: "INTERNAL_SERVER_ERROR",
+        message: error.message,
+        logout: error.message === 'jwt expired'
+      });
+    }
+  }
+  next();
+});
+
+
 // mount all routes on /api path
 app.use('/node/api/', routes)
 
