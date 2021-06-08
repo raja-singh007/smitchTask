@@ -4,8 +4,20 @@ import user from '../models/user';
 import catchAsync from '../helpers/catchAsync';
 import AppError from '../helpers/AppError';
 import mongoose from 'mongoose';
+import redis from 'redis';
+import config from '../../config/env';
+import {promisify} from 'util';
+
 
 const newResponseObject = new responseObjectClass();
+
+const client = redis.createClient({
+    host: config.redisHost,
+    port: config.redisPort
+})
+
+const GET_ASYNC = promisify(client.get).bind(client);
+const SET_ASYNC = promisify(client.setex).bind(client);
 
 const registerDevice = catchAsync(async(req,res,next)=>{
     let{
@@ -64,8 +76,16 @@ const deviceDetails = catchAsync(async (req, res, next) => {
         query: { deviceId }
     } = req;
 
-    console.log(deviceId)
+    
     if (!mongoose.Types.ObjectId.isValid(deviceId)) return next(new AppError('Invalid Data', 409));
+
+    const reply = await GET_ASYNC(deviceId);
+    // console.log(reply)
+    if(reply && Object.keys(reply).length !== 0){
+        console.log('from cache');
+        return res.send(JSON.parse(reply))
+    }
+
     const deviceData = await device.findById({ _id: deviceId }).lean();
 
     const returnObj = newResponseObject.create({
@@ -74,6 +94,10 @@ const deviceDetails = catchAsync(async (req, res, next) => {
         message: 'Device details found',
         data: deviceData,
     });
+
+    const saveResult = await SET_ASYNC(deviceId,60,JSON.stringify(deviceData));
+    console.log('data savein cache',saveResult)
+
     return res.send(returnObj);
 
 });
